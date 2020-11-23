@@ -31,6 +31,9 @@ impl TryFrom<Timestamp> for Time {
             seconds: value.seconds,
             nanos: value.nanos,
         };
+
+        // The `try_from` below returns a `Result<_, Infallible>`,
+        // which means that the conversion always succeeds.
         Ok(SystemTime::try_from(prost_value)?.into())
     }
 }
