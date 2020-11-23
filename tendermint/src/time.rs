@@ -34,6 +34,8 @@ impl TryFrom<Timestamp> for Time {
 
         // The `try_from` below returns a `Result<_, Infallible>`,
         // which means that the conversion always succeeds.
+        // We should use `Result::into_ok` instead of `?` when it's stabilized.
+        // https://doc.rust-lang.org/stable/std/result/enum.Result.html#method.into_ok
         Ok(SystemTime::try_from(prost_value)?.into())
     }
 }
