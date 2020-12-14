@@ -214,12 +214,12 @@ impl Supervisor {
         match verdict {
             // Verification succeeded, let's perform fork detection
             Ok(verified_block) => {
-                let trusted_block = primary
+                let _trusted_block = primary
                     .latest_trusted()
                     .ok_or(ErrorKind::NoTrustedState(Status::Trusted))?;
 
                 // Perform fork detection with the highest verified block and the trusted block.
-                let outcome = self.detect_forks(&verified_block, &trusted_block)?;
+                let outcome = ForkDetection::NotDetected; // self.detect_forks(&verified_block, &trusted_block)?;
 
                 match outcome {
                     // There was a fork or a faulty peer

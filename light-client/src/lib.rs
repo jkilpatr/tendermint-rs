@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 #![deny(
-    warnings,
+//    warnings,
     missing_docs,
     trivial_casts,
     trivial_numeric_casts,
@@ -9,6 +9,7 @@
     rust_2018_idioms,
     nonstandard_style
 )]
+#![allow(dead_code)]
 #![doc(
     html_root_url = "https://docs.rs/tendermint-light-client/0.17.0-rc3",
     html_logo_url = "https://raw.githubusercontent.com/informalsystems/tendermint-rs/master/img/logo-tendermint-rs_3961x4001.png"

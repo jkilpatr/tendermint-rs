@@ -3,10 +3,10 @@
 /// Tendermint repository URL.
 pub const TENDERMINT_REPO: &str = "https://github.com/tendermint/tendermint";
 // Commitish formats:
-// Tag: v0.34.0-rc4
+// Tag: v0.34.0
 // Branch: master
-// Commit ID (full length): d7d0ffea13c60c98b812d243ba5a2c375f341c15
-pub const TENDERMINT_COMMITISH: &str = "d7d0ffea13c60c98b812d243ba5a2c375f341c15";
+// Commit ID (full length): 182fa3285128dfeb2b92690579be04f77ad5d0b1
+pub const TENDERMINT_COMMITISH: &str = "182fa3285128dfeb2b92690579be04f77ad5d0b1";
 
 /// Predefined custom attributes for message annotations
 const PRIMITIVE_ENUM: &str = r#"#[derive(::num_derive::FromPrimitive, ::num_derive::ToPrimitive)]"#;
@@ -47,7 +47,7 @@ pub static CUSTOM_TYPE_ATTRIBUTES: &[(&str, &str)] = &[
     (".tendermint.types.BlockIDFlag", PRIMITIVE_ENUM),
     (".tendermint.types.Block", SERIALIZED),
     (".tendermint.types.Data", SERIALIZED),
-    (".tendermint.types.EvidenceData", SERIALIZED),
+    (".tendermint.types.EvidenceList", SERIALIZED),
     (".tendermint.types.Evidence", SERIALIZED),
     (".tendermint.types.DuplicateVoteEvidence", SERIALIZED),
     (".tendermint.types.Vote", SERIALIZED),
@@ -82,11 +82,18 @@ pub static CUSTOM_TYPE_ATTRIBUTES: &[(&str, &str)] = &[
 /// https://docs.rs/prost-build/0.6.1/prost_build/struct.Config.html#method.btree_map
 pub static CUSTOM_FIELD_ATTRIBUTES: &[(&str, &str)] = &[
     (
-        ".tendermint.types.EvidenceParams.max_num",
+        ".tendermint.types.EvidenceParams.max_bytes",
         QUOTED_WITH_DEFAULT,
     ),
+    (
+        ".tendermint.types.DuplicateVoteEvidence.total_voting_power",
+        QUOTED,
+    ),
+    (
+        ".tendermint.types.DuplicateVoteEvidence.validator_power",
+        QUOTED,
+    ),
     (".tendermint.types.Data.hash", DEFAULT),
-    (".tendermint.types.EvidenceData.hash", DEFAULT),
     (".tendermint.types.Commit.hash", DEFAULT),
     (".tendermint.abci.ResponseInfo.last_block_height", QUOTED),
     (".tendermint.version.Consensus.block", QUOTED),
@@ -119,7 +126,7 @@ pub static CUSTOM_FIELD_ATTRIBUTES: &[(&str, &str)] = &[
     (".tendermint.types.Header.evidence_hash", HEXSTRING),
     (".tendermint.types.Header.proposer_address", HEXSTRING),
     (".tendermint.types.Data.txs", NULLABLEVECARRAY),
-    (".tendermint.types.EvidenceData.evidence", NULLABLE),
+    (".tendermint.types.EvidenceList.evidence", NULLABLE),
     (".tendermint.types.Commit.height", QUOTED),
     (".tendermint.types.Commit.signatures", NULLABLE),
     (".tendermint.types.CommitSig.validator_address", HEXSTRING),

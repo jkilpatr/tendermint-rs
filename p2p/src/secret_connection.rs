@@ -141,6 +141,7 @@ impl<IoHandler: Read + Write + Send + Sync> SecretConnection<IoHandler> {
                 proto::crypto::public_key::Sum::Ed25519(ref bytes) => {
                     ed25519::PublicKey::from_bytes(bytes).ok()
                 }
+                _ => None
             })
             .ok_or(Error::CryptoError)?;
 
