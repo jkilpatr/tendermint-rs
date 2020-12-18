@@ -274,11 +274,15 @@ impl LightClient {
         target_height: Height,
         state: &mut State,
     ) -> Result<LightBlock, Error> {
+        println!("verify_backwards to {}", target_height);
+
         let root = state
             .light_store
             .latest_trusted_or_verified()
             // .lowest_trusted_or_verified() // does not work yet as it might be lower than target_height
             .ok_or(ErrorKind::NoInitialTrustedState)?;
+
+        println!("trusted_height: {}", root.height());
 
         assert!(root.height() >= target_height);
 
@@ -311,7 +315,8 @@ impl LightClient {
             state.trace_block(latest.height(), current.height());
 
             latest = current;
-            // println!("verified: {}", latest.height());
+
+            println!("verified: {}", latest.height());
         }
 
         assert_eq!(latest.height(), target_height);

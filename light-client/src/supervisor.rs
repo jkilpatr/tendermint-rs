@@ -128,6 +128,8 @@ pub struct Supervisor {
     sender: channel::Sender<HandleInput>,
     /// Channel through which to receive events from the `Handle`s
     receiver: channel::Receiver<HandleInput>,
+    /// Last error which caused a primary swap
+    last_error: Option<ErrorKind>,
 }
 
 impl std::fmt::Debug for Supervisor {
@@ -156,6 +158,7 @@ impl Supervisor {
             receiver,
             fork_detector: Box::new(fork_detector),
             evidence_reporter: Box::new(evidence_reporter),
+            last_error: None,
         }
     }
 
@@ -248,6 +251,8 @@ impl Supervisor {
             }
             // Verification failed
             Err(err) => {
+                self.last_error = Some(err.kind().clone());
+
                 // Swap primary, and continue with new primary, if there is any witness left.
                 self.peers.replace_faulty_primary(Some(err))?;
                 self.verify(height)
@@ -310,7 +315,11 @@ impl Supervisor {
         trusted_block: &LightBlock,
     ) -> Result<ForkDetection, Error> {
         if self.peers.witnesses_ids().is_empty() {
-            bail!(ErrorKind::NoWitnesses);
+            if let Some(ref kind) = self.last_error {
+                bail!(ErrorKind::NoWitnesses.context(kind.clone()));
+            } else {
+                bail!(ErrorKind::NoWitnesses);
+            }
         }
 
         let witnesses = self
