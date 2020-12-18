@@ -2,10 +2,12 @@
 //!
 //! [1]: https://github.com/informalsystems/tendermint-rs/blob/master/docs/spec/lightclient/verification/verification.md
 
+use std::{convert::TryFrom, fmt, time::Duration};
+use tracing::{info, span, Level};
+
 use contracts::*;
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
-use std::{convert::TryFrom, fmt, time::Duration};
 
 use crate::contracts::*;
 use crate::{
@@ -166,9 +168,13 @@ impl LightClient {
         target_height: Height,
         state: &mut State,
     ) -> Result<LightBlock, Error> {
+        let span = span!(Level::INFO, "verify_to_target", target_height = %target_height);
+        let _enter = span.enter();
+
         // Let's first look in the store to see whether
         // we have already successfully verified this block.
         if let Some(light_block) = state.light_store.get_trusted_or_verified(target_height) {
+            info!("already trusted");
             return Ok(light_block);
         }
 
@@ -177,6 +183,8 @@ impl LightClient {
             .light_store
             .latest_trusted_or_verified()
             .ok_or(ErrorKind::NoInitialTrustedState)?;
+
+        info!(highest = %highest.height(), "highest");
 
         if target_height >= highest.height() {
             // Perform forward verification with bisection
@@ -195,6 +203,9 @@ impl LightClient {
     ) -> Result<LightBlock, Error> {
         let mut current_height = target_height;
 
+        let span = span!(Level::INFO, "verify_bisection", target_height = %target_height);
+        let _enter = span.enter();
+
         loop {
             let now = self.clock.now();
 
@@ -203,6 +214,8 @@ impl LightClient {
                 .light_store
                 .latest_trusted_or_verified()
                 .ok_or(ErrorKind::NoInitialTrustedState)?;
+
+            info!(current = %current_height, trusted = %trusted_state.height(), "loop");
 
             if target_height < trusted_state.height() {
                 bail!(ErrorKind::TargetLowerThanTrustedState {
@@ -274,7 +287,8 @@ impl LightClient {
         target_height: Height,
         state: &mut State,
     ) -> Result<LightBlock, Error> {
-        println!("verify_backwards to {}", target_height);
+        let span = span!(Level::INFO, "verify_backwards", target_height = %target_height);
+        let _enter = span.enter();
 
         let root = state
             .light_store
@@ -282,7 +296,7 @@ impl LightClient {
             // .lowest_trusted_or_verified() // does not work yet as it might be lower than target_height
             .ok_or(ErrorKind::NoInitialTrustedState)?;
 
-        println!("trusted_height: {}", root.height());
+        info!(root = %root.height(), "root");
 
         assert!(root.height() >= target_height);
 
@@ -316,7 +330,7 @@ impl LightClient {
 
             latest = current;
 
-            println!("verified: {}", latest.height());
+            info!(latest = %latest.height(), "verified");
         }
 
         assert_eq!(latest.height(), target_height);

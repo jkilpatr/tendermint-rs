@@ -129,16 +129,10 @@ fn testcase(max: u32) -> impl Strategy<Value = TestCase> {
 // }
 
 fn run_test(tc: TestCase, run: impl FnOnce(TestCase)) {
-    println!("===========================================");
-    println!(
-        "length: {} | trusted: {} | target: {}",
-        tc.length, tc.trusted_height, tc.target_height
-    );
-    println!("-------------------------------------------");
     run(tc);
-    println!("===========================================");
-    println!();
 }
+
+use test_env_log::test;
 
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(5))]
