@@ -13,6 +13,8 @@ use crate::peer_list::PeerList;
 use crate::state::State;
 use crate::types::{Height, LatestStatus, LightBlock, PeerId, Status};
 
+use tracing::{info, span, Level};
+
 /// Provides an interface to the supervisor for use in downstream code.
 pub trait Handle: Send + Sync {
     /// Get latest trusted block.
@@ -204,6 +206,10 @@ impl Supervisor {
     /// Verify either to the latest block (if `height == None`) or to a given block (if `height ==
     /// Some(height)`).
     fn verify(&mut self, height: Option<Height>) -> Result<LightBlock, Error> {
+        let span =
+            span!(Level::INFO, "verify", height = ?height, witnesses = ?self.peers.witnesses_ids());
+        let _enter = span.enter();
+
         let primary = self.peers.primary_mut();
 
         // Perform light client core verification for the given height (or highest).
@@ -221,8 +227,12 @@ impl Supervisor {
                     .latest_trusted()
                     .ok_or(ErrorKind::NoTrustedState(Status::Trusted))?;
 
+                info!("block verified");
+
                 // Perform fork detection with the highest verified block and the trusted block.
                 let outcome = self.detect_forks(&verified_block, &trusted_block)?;
+
+                info!(outcome = ?outcome, "after fork detection");
 
                 match outcome {
                     // There was a fork or a faulty peer
@@ -251,6 +261,8 @@ impl Supervisor {
             }
             // Verification failed
             Err(err) => {
+                info!(err = %err, "verification failed");
+
                 self.last_error = Some(err.kind().clone());
 
                 // Swap primary, and continue with new primary, if there is any witness left.
